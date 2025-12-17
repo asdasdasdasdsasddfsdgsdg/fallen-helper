@@ -6,46 +6,85 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id        String   @id @default(uuid())
-  discordId String   @unique // Discord User ID
-  username  String?
+  id        String   @id @default(cuid())
+  discordId String   @unique
+  name      String?
+  image     String?
+  
+  createdEvents Event[]
+  signups       Signup[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  events    Event[]  @relation("CreatedEvents")
-  signups   Signup[]
 }
 
 model Event {
-  id          String   @id @default(uuid())
+  id          String   @id @default(cuid())
   title       String
   description String?
   startTime   DateTime
-  channelId   String?  // Discord Channel ID where to post
-  guildId     String?  // Discord Guild ID
-  messageId   String?  // Discord Message ID of the embed
+  channelId   String?  // Discord channel ID
+  messageId   String?  // Discord message ID
+  
   creatorId   String
-  creator     User     @relation("CreatedEvents", fields: [creatorId], references: [discordId])
+  creator     User     @relation(fields: [creatorId], references: [id])
+
+  signups     Signup[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  signups     Signup[]
 }
 
 model Signup {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   eventId   String
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
   userId    String
-  user      User     @relation(fields: [userId], references: [discordId])
-  role      String   // Tank, Healer, DPS
-  class     String?  // Greatsword, Wand, etc. (Can be cleaner with Enum but String is flexible for now)
-  status    String   @default("CONFIRMED") // CONFIRMED, ABSENT, LATE, BENCH
+  user      User     @relation(fields: [userId], references: [id])
+  
+  role      String?  // e.g. Tank, Healer, DPS, or specific class
+  status    String   @default("CONFIRMED") // CONFIRMED, TENTATIVE, ABSENT
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([eventId, userId])
+}
+
+model PendingAction {
+  id        String   @id @default(cuid())
+  type      String   // CREATE_EVENT, UPDATE_EVENT, DELETE_EVENT
+  payload   String   // JSON string of data
+  status    String   @default("PENDING") // PENDING, PROCESSING, DONE, FAILED
+  
+  result    String?  // JSON string of result (e.g. messageId)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Guild {
+id String @id
+name String
+icon String?
+channels Channel[]
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+}
+
+model Channel {
+id String @id
+name String
+type String
+guildId String
+guild Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
 }

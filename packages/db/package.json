@@ -1,5 +1,5 @@
 {
-  "name": "@raid-helper-tl/db",
+  "name": "@fallen-helper/db",
   "version": "1.0.0",
   "main": "index.ts",
   "types": "index.ts",
@@ -17,6 +17,6 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@prisma/client": "^6.1.0"
+    "@prisma/client": "^6.19.1"
   }
 }

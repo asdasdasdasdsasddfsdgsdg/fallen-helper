@@ -9,12 +9,14 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@fastify/cors": "^11.2.0",
     "discord.js": "^14.16.0",
-    "dotenv": "^16.4.0"
+    "dotenv": "^16.6.1",
+    "fastify": "^5.6.2"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.0.0",
-    "@types/node": "^22.0.0"
+    "typescript": "^5.0.0"
   }
 }
