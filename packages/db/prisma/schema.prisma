@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  discordId String   @unique // Discord User ID
+  username  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events    Event[]  @relation("CreatedEvents")
+  signups   Signup[]
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  startTime   DateTime
+  channelId   String?  // Discord Channel ID where to post
+  guildId     String?  // Discord Guild ID
+  messageId   String?  // Discord Message ID of the embed
+  creatorId   String
+  creator     User     @relation("CreatedEvents", fields: [creatorId], references: [discordId])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  signups     Signup[]
+}
+
+model Signup {
+  id        String   @id @default(uuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [discordId])
+  role      String   // Tank, Healer, DPS
+  class     String?  // Greatsword, Wand, etc. (Can be cleaner with Enum but String is flexible for now)
+  status    String   @default("CONFIRMED") // CONFIRMED, ABSENT, LATE, BENCH
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, userId])
+}
